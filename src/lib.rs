@@ -69,6 +69,39 @@ impl CSVFile {
 
     Ok(())
   }
+
+  /// Removes a column from the CSV file.
+  /// It may return an error if the column index is out of range.
+  pub fn remove_column(&mut self, column_idx: usize) -> Result<(), Error> {
+    if column_idx >= self.len() {
+      return Err(Error::new(
+        ErrorKind::InvalidData,
+        format!("The column index {} is out of range", column_idx))
+      );
+    }
+
+    self.columns.remove(column_idx);
+    for row in &mut self.data {
+      row.remove(column_idx);
+    }
+
+    Ok(())
+  }
+
+  /// Removes a row from the CSV file.
+  /// It may return an error if the row index is out of range.
+  pub fn remove_row(&mut self, row_idx: usize) -> Result<(), Error> {
+    if row_idx >= self.data.len() {
+      return Err(Error::new(
+        ErrorKind::InvalidData,
+        format!("The row index {} is out of range", row_idx))
+      );
+    }
+
+    self.data.remove(row_idx);
+
+    Ok(())
+  }
 }
 
 /// Parses the line into a vector of strings.
