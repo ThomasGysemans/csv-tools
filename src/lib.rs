@@ -70,6 +70,32 @@ impl CSVFile {
     Ok(())
   }
 
+  /// Inserts a column to the CSV file at a specific index.
+  /// It may return an error if the column already exists or if the index is out of range.
+  /// It also inserts an empty string to each row.
+  pub fn insert_column(&mut self, name: String, column_idx: usize) -> Result<(), Error> {
+    if column_idx > self.len() {
+      return Err(Error::new(
+        ErrorKind::InvalidData,
+        format!("The column index {} is out of range", column_idx))
+      );
+    }
+
+    if self.columns.contains(&name) {
+      return Err(Error::new(
+        ErrorKind::InvalidData,
+        format!("The column {} already exists", name))
+      );
+    }
+
+    self.columns.insert(column_idx, name);
+    for row in &mut self.data {
+      row.insert(column_idx, String::new());
+    }
+
+    Ok(())
+  }
+
   /// Removes a column from the CSV file.
   /// It may return an error if the column index is out of range.
   pub fn remove_column(&mut self, column_idx: usize) -> Result<(), Error> {
