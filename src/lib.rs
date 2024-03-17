@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::Error;
 use std::io::{BufRead, BufReader};
@@ -33,6 +34,82 @@ impl CSVFile {
   /// Returns the number of columns in the CSV file.
   pub fn len(&self) -> usize {
     self.columns.len()
+  }
+
+  /// Returns the number of rows in the CSV file.
+  /// It doesn't count the header.
+  pub fn count_rows(&self) -> usize {
+    self.data.len()
+  }
+
+  /// Checks if the CSV file is valid.
+  /// It checks for duplicates in the columns and if the rows have the right length.
+  pub fn check_validity(&self) -> bool {
+    // Check for duplicates in the columns
+    let mut column_names: HashSet<&str> = HashSet::new();
+    for column in &self.columns {
+      if column_names.contains(column.as_str()) {
+        return false;
+      }
+      column_names.insert(column);
+    }
+
+    // Make sure the rows have the right length
+    let number_of_columns = self.len();
+    for row in &self.data {
+      if row.len() != number_of_columns {
+        return false;
+      }
+    }
+
+    true
+  }
+
+  /// Merges two CSV files together.
+  /// It may return an error if a duplicated column is found.
+  /// If the number of rows are different, then the rows are extended with empty strings.
+  /// 
+  /// The other CSVFile instance is supposed to be valid.
+  pub fn merge(&mut self, other: &CSVFile) -> Result<(), Error> {
+    for column in &other.columns {
+      if self.columns.contains(column) {
+        return Err(Error::new(
+          ErrorKind::InvalidData,
+          format!("The column {} already exists", column))
+        );
+      }
+    }
+
+    // If self has less rows than other
+    //   -> add rows composed of empty strings to self until the lengths match
+    // If self has more rows than other
+    //   -> extend the rows of self with empty strings (from the point where the lengths dismatch to the end of the file).
+    //      Add as many empty strings as the number of columns in other.
+    // Finally:
+    //   -> extend the rows of self with the data from other
+
+    let number_of_columns = self.len() + other.len();
+    let self_rows = self.count_rows();
+    let other_rows = other.count_rows();
+
+    // Add the columns of other to self
+    self.columns.extend(other.columns.iter().cloned());
+
+    if self_rows < other_rows {
+      for _ in self_rows..other_rows {
+        self.data.push(vec![String::new(); number_of_columns]);
+      }
+    } else if self_rows > other_rows {
+      for i in (other_rows + 1)..self_rows {
+        self.data[i].extend(vec![String::new(); other.len()].iter().cloned());
+      }
+    }
+
+    for (i, row) in self.data.iter_mut().enumerate() {
+      row.extend(other.data[i].iter().cloned());
+    }
+
+    Ok(())
   }
 
   /// Adds a row to the CSV file.
