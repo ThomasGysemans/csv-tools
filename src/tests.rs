@@ -250,4 +250,41 @@ mod tests {
     assert_eq!(csv_file.data[1][0].len(), 0);
     assert_eq!(csv_file.data[2][0].len(), 0);
   }
+
+  #[test]
+  fn test_get_column_idx_by_name() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert_eq!(csv_file.get_column_idx(&"a".to_string()).unwrap(), 0);
+    assert_eq!(csv_file.get_column_idx(&"b".to_string()).unwrap(), 1);
+    assert_eq!(csv_file.get_column_idx(&"c".to_string()).unwrap(), 2);
+    assert!(csv_file.get_column_idx(&"d".to_string()).is_none());
+  }
+
+  #[test]
+  fn test_remove_column() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert_eq!(csv_file.columns[0], "a");
+    assert_eq!(csv_file.columns.len(), 3);
+    csv_file.remove_column(0).unwrap();
+    assert_eq!(csv_file.columns[0], "b");
+    assert_eq!(csv_file.columns.len(), 2);
+    assert_eq!(csv_file.data.len(), 3);
+    assert_eq!(csv_file.data[0].len(), 2);
+    assert_eq!(csv_file.data[1].len(), 2);
+    assert_eq!(csv_file.data[2].len(), 2);
+  }
+
+  #[test]
+  fn test_remove_row() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert_eq!(csv_file.data.len(), 3);
+    csv_file.remove_row(0).unwrap();
+    assert_eq!(csv_file.data.len(), 2);
+  }
 }

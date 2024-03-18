@@ -100,6 +100,11 @@ impl CSVFile {
   pub fn set_delimiter(&mut self, new_delimiter: &char) {
     self.delimiter = *new_delimiter;
   }
+  
+  /// Gets the index of a column by its name.
+  pub fn get_column_idx(&self, column_name: &String) -> Option<usize> {
+    self.columns.iter().position(|c| c == column_name)
+  }
 
   /// Checks if the CSV file is valid.
   /// It checks for duplicates in the columns and if the rows have the right length.
