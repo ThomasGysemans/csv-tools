@@ -39,14 +39,14 @@ assert_eq!(file.columns, vec![
 ]);
 
 assert_eq!(file.rows, vec![
-  vec!["C++".to_string(), "10".to_string(), "8".to_string()],
-  vec!["Rust".to_string(), "10".to_string(), "9".to_string()],
-  vec!["JavaScript".to_string(), "9".to_string(), "1".to_string()],
-  vec!["TypeScript".to_string(), "10".to_string(), "1".to_string()],
-  vec!["Java".to_string(), "0".to_string(), "2".to_string()],
-  vec!["HTML".to_string(), "10".to_string(), "-1".to_string()],
-  vec!["GDScript".to_string(), "10".to_string(), "1".to_string()],
-  vec!["Lua".to_string(), "7".to_string(), "1".to_string()],
+  vec!["C++".to_string(),        "10".to_string(),  "8".to_string()],
+  vec!["Rust".to_string(),       "10".to_string(),  "9".to_string()],
+  vec!["JavaScript".to_string(), "9".to_string(),   "1".to_string()],
+  vec!["TypeScript".to_string(), "10".to_string(),  "1".to_string()],
+  vec!["Java".to_string(),       "0".to_string(),   "2".to_string()],
+  vec!["HTML".to_string(),       "10".to_string(), "-1".to_string()],
+  vec!["GDScript".to_string(),   "10".to_string() , "1".to_string()],
+  vec!["Lua".to_string(),        "7".to_string(),   "1".to_string()],
 ]);
 ```
 
