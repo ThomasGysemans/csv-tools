@@ -192,4 +192,43 @@ mod tests {
     csv_file.data[0].remove(1);
     assert!(!csv_file.check_validity());
   }
+
+  #[test]
+  fn test_add_row() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    let new_row = vec!["10".to_string(), "11".to_string(), "12".to_string()];
+    csv_file.add_row(&new_row).unwrap();
+    assert_eq!(csv_file.data[3], new_row);
+  }
+
+  #[test]
+  fn test_add_row_with_invalid_data() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    let new_row = vec!["10".to_string(), "11".to_string(), "12".to_string(), "13".to_string()];
+    assert!(csv_file.add_row(&new_row).is_err());
+  }
+
+  #[test]
+  fn test_add_column() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    csv_file.add_column(&"d".to_string()).unwrap();
+    assert_eq!(csv_file.columns[3], "d");
+    assert_eq!(csv_file.data[0][3].len(), 0);
+    assert_eq!(csv_file.data[1][3].len(), 0);
+    assert_eq!(csv_file.data[2][3].len(), 0);
+  }
+
+  #[test]
+  fn test_add_invalid_column() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert!(csv_file.add_column(&"a".to_string()).is_err()); // it already exists
+  }
 }
