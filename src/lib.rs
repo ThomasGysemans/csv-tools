@@ -9,7 +9,7 @@ use std::io::Write;
 pub struct CSVFile {
   pub delimiter: char,
   pub columns: Vec<String>,
-  pub data: Vec<Vec<String>>,
+  pub rows: Vec<Vec<String>>,
 }
 
 pub struct CSVCoords {
@@ -45,7 +45,7 @@ impl fmt::Display for CSVFile {
     result.pop(); // removes the trailing delimiter
     result.push('\n');
 
-    for row in &self.data {
+    for row in &self.rows {
       for field in row {
         result.push_str(field);
         result.push(self.delimiter);
@@ -60,7 +60,7 @@ impl fmt::Display for CSVFile {
 
 impl fmt::Debug for CSVFile {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "CSVFile {{ delimiter: {}, columns: {:?}, data: {:?} }}", self.delimiter, self.columns, self.data)
+    write!(f, "CSVFile {{ delimiter: {}, columns: {:?}, rows: {:?} }}", self.delimiter, self.columns, self.rows)
   }
 }
 
@@ -73,18 +73,18 @@ impl CSVFile {
     let mut lines = BufReader::new(&file).lines();
     let first_line = lines.next().unwrap()?;
     let columns = read_columns(&first_line, delimiter)?;
-    let data = read_data(&mut lines, delimiter, columns.len())?;
+    let rows = read_rows(&mut lines, delimiter, columns.len())?;
 
     Ok(
       Self {
         delimiter: *delimiter,
         columns,
-        data
+        rows
       }
     )
   }
 
-  /// Creates a new CSVFile from the columns and the data.
+  /// Creates a new CSVFile from the columns and the rows.
   /// 
   /// # Example
   /// 
@@ -100,10 +100,10 @@ impl CSVFile {
   /// 
   /// let file = CSVFile::build(&columns, &rows, &',').unwrap();
   /// assert_eq!(file.columns, columns);
-  /// assert_eq!(file.data, rows);
+  /// assert_eq!(file.rows, rows);
   /// ```
-  pub fn build(columns: &Vec<String>, data: &Vec<Vec<String>>, delimiter: &char) -> Result<Self, Error> {
-    for (index, row) in data.iter().enumerate() {
+  pub fn build(columns: &Vec<String>, rows: &Vec<Vec<String>>, delimiter: &char) -> Result<Self, Error> {
+    for (index, row) in rows.iter().enumerate() {
       if columns.len() != row.len() {
         return Err(Error::new(
           ErrorKind::InvalidData,
@@ -116,7 +116,7 @@ impl CSVFile {
       Self {
         delimiter: *delimiter,
         columns: columns.clone(),
-        data: data.clone()
+        rows: rows.clone()
       }
     )
   }
@@ -136,7 +136,7 @@ impl CSVFile {
   /// Returns the number of rows in the CSV file.
   /// It doesn't count the header.
   pub fn count_rows(&self) -> usize {
-    self.data.len()
+    self.rows.len()
   }
 
   /// Returns `true` if the CSV file has the given column.
@@ -146,7 +146,7 @@ impl CSVFile {
 
   /// Returns `true` if the CSV file has no row.
   pub fn has_no_rows(&self) -> bool {
-    self.data.is_empty()
+    self.rows.is_empty()
   }
 
   /// Returns `true` if the CSV file has no column.
@@ -191,13 +191,13 @@ impl CSVFile {
   /// assert_eq!(file.get_cell(&CSVCoords { row: 2, column: 2 }), Some(&"9".to_string()));
   /// ```
   pub fn get_cell(&self, coordinates: &CSVCoords) -> Option<&String> {
-    self.data.get(coordinates.row)?.get(coordinates.column)
+    self.rows.get(coordinates.row)?.get(coordinates.column)
   }
 
   /// Finds text in the CSV file and returns the coordinates of the cells.
   pub fn find_text(&self, text: &String) -> Vec<CSVCoords> {
     let mut coords: Vec<CSVCoords> = Vec::new();
-    for (i, row) in self.data.iter().enumerate() {
+    for (i, row) in self.rows.iter().enumerate() {
       for (j, cell) in row.iter().enumerate() {
         if cell.contains(text) {
           coords.push(CSVCoords { row: i, column: j });
@@ -222,7 +222,7 @@ impl CSVFile {
 
     // Make sure the rows have the right length
     let number_of_columns = self.len();
-    for row in &self.data {
+    for row in &self.rows {
       if row.len() != number_of_columns {
         return false;
       }
@@ -232,7 +232,8 @@ impl CSVFile {
   }
 
   /// Fills a column with the given data.
-  /// It may return an error if the column doesn't exist or if the length of the data is different from the number of rows.
+  /// It may return an error if the column doesn't exist
+  /// or if the length of the data is different from the number of rows.
   pub fn fill_column(&mut self, column_name: &String, data: &Vec<String>) -> Result<(), Error> {
     let column_idx = self.columns.iter().position(|c| c == column_name);
 
@@ -249,7 +250,7 @@ impl CSVFile {
         )
       } else {
         let column_idx = column_idx.unwrap();
-        for (i, row) in self.data.iter_mut().enumerate() {
+        for (i, row) in self.rows.iter_mut().enumerate() {
           row[column_idx] = data[i].clone();
         }
   
@@ -290,16 +291,16 @@ impl CSVFile {
 
     if self_rows < other_rows {
       for _ in self_rows..other_rows {
-        self.data.push(vec![String::new(); number_of_columns]);
+        self.rows.push(vec![String::new(); number_of_columns]);
       }
     } else if self_rows > other_rows {
       for i in (other_rows + 1)..self_rows {
-        self.data[i].extend(vec![String::new(); other.len()].iter().cloned());
+        self.rows[i].extend(vec![String::new(); other.len()].iter().cloned());
       }
     }
 
-    for (i, row) in self.data.iter_mut().enumerate() {
-      row.extend(other.data[i].iter().cloned());
+    for (i, row) in self.rows.iter_mut().enumerate() {
+      row.extend(other.rows[i].iter().cloned());
     }
 
     Ok(())
@@ -316,7 +317,7 @@ impl CSVFile {
       );
     }
 
-    self.data.push(data.clone());
+    self.rows.push(data.clone());
 
     Ok(())
   }
@@ -333,7 +334,7 @@ impl CSVFile {
     }
 
     self.columns.push(name.clone());
-    for row in &mut self.data {
+    for row in &mut self.rows {
       row.push(String::new());
     }
 
@@ -359,7 +360,7 @@ impl CSVFile {
     }
 
     self.columns.insert(column_idx, name.clone());
-    for row in &mut self.data {
+    for row in &mut self.rows {
       row.insert(column_idx, String::new());
     }
 
@@ -377,7 +378,7 @@ impl CSVFile {
     }
 
     self.columns.remove(column_idx);
-    for row in &mut self.data {
+    for row in &mut self.rows {
       row.remove(column_idx);
     }
 
@@ -387,14 +388,14 @@ impl CSVFile {
   /// Removes a row from the CSV file.
   /// It may return an error if the row index is out of range.
   pub fn remove_row(&mut self, row_idx: usize) -> Result<(), Error> {
-    if row_idx >= self.data.len() {
+    if row_idx >= self.rows.len() {
       return Err(Error::new(
         ErrorKind::InvalidData,
         format!("The row index {} is out of range", row_idx))
       );
     }
 
-    self.data.remove(row_idx);
+    self.rows.remove(row_idx);
 
     Ok(())
   }
@@ -404,10 +405,10 @@ impl CSVFile {
   /// 
   /// If no empty row is found, then nothing happens.
   pub fn trim_end(&mut self) {
-    let mut i = self.data.len() - 1;
+    let mut i = self.rows.len() - 1;
     loop {
-      if self.data[i].iter().all(|s| s.is_empty()) {
-        self.data.remove(i);
+      if self.rows[i].iter().all(|s| s.is_empty()) {
+        self.rows.remove(i);
         if i == 0 {
           break;
         } else {
@@ -426,8 +427,8 @@ impl CSVFile {
   pub fn trim_start(&mut self) {
     let mut to_remove: Vec<usize> = Vec::new();
     let mut i = 0;
-    while i < self.data.len() {
-      if self.data[i].iter().all(|s| s.is_empty()) {
+    while i < self.rows.len() {
+      if self.rows[i].iter().all(|s| s.is_empty()) {
         to_remove.push(i);
         i += 1;
       } else {
@@ -435,7 +436,7 @@ impl CSVFile {
       }
     }
     for i in to_remove.into_iter().rev() {
-      self.data.remove(i);
+      self.rows.remove(i);
     }
   }
 
@@ -447,7 +448,7 @@ impl CSVFile {
 
   /// Removes all the empty lines from the CSV file.
   pub fn remove_empty_lines(&mut self) {
-    self.data.retain(|row| !row.iter().all(|s| s.is_empty()));
+    self.rows.retain(|row| !row.iter().all(|s| s.is_empty()));
   }
 }
 
@@ -550,7 +551,7 @@ pub(crate) fn read_columns(line: &String, delimiter: &char) -> Result<Vec<String
 /// 
 /// The "number_of_fields" parameter is used to pre-allocate the vectors.
 /// This is useful when we know the number of fields in advance.
-pub(crate) fn read_data(lines: &mut std::io::Lines<BufReader<&File>>, delimiter: &char, number_of_fields: usize) -> Result<Vec<Vec<String>>, Error> {
+pub(crate) fn read_rows(lines: &mut std::io::Lines<BufReader<&File>>, delimiter: &char, number_of_fields: usize) -> Result<Vec<Vec<String>>, Error> {
   let mut data: Vec<Vec<String>> = Vec::new();
 
   for line in lines {

@@ -86,7 +86,7 @@ mod tests {
     let data = get_fake_rows();
     let csv_file = CSVFile::build(&columns, &data, &',').unwrap();
     assert_eq!(csv_file.columns, columns);
-    assert_eq!(csv_file.data, data);
+    assert_eq!(csv_file.rows, data);
   }
 
   #[test]
@@ -154,7 +154,7 @@ mod tests {
     let columns = get_fake_columns();
     let data = get_fake_rows();
     let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
-    csv_file.data.clear();
+    csv_file.rows.clear();
     assert!(csv_file.has_no_rows());
   }
 
@@ -174,13 +174,13 @@ mod tests {
     let data = get_fake_rows();
     let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
     let new_data = vec!["10".to_string(), "11".to_string(), "12".to_string()];
-    assert_eq!(csv_file.data[0][1], "2");
-    assert_eq!(csv_file.data[1][1], "5");
-    assert_eq!(csv_file.data[2][1], "8");
+    assert_eq!(csv_file.rows[0][1], "2");
+    assert_eq!(csv_file.rows[1][1], "5");
+    assert_eq!(csv_file.rows[2][1], "8");
     csv_file.fill_column(&"b".to_string(), &new_data).unwrap();
-    assert_eq!(csv_file.data[0][1], "10");
-    assert_eq!(csv_file.data[1][1], "11");
-    assert_eq!(csv_file.data[2][1], "12");
+    assert_eq!(csv_file.rows[0][1], "10");
+    assert_eq!(csv_file.rows[1][1], "11");
+    assert_eq!(csv_file.rows[2][1], "12");
   }
 
   #[test]
@@ -214,7 +214,7 @@ mod tests {
     let columns = get_fake_columns();
     let data = get_fake_rows();
     let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
-    csv_file.data[0].remove(1);
+    csv_file.rows[0].remove(1);
     assert!(!csv_file.check_validity());
   }
 
@@ -225,7 +225,7 @@ mod tests {
     let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
     let new_row = vec!["10".to_string(), "11".to_string(), "12".to_string()];
     csv_file.add_row(&new_row).unwrap();
-    assert_eq!(csv_file.data[3], new_row);
+    assert_eq!(csv_file.rows[3], new_row);
   }
 
   #[test]
@@ -244,9 +244,9 @@ mod tests {
     let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
     csv_file.add_column(&"d".to_string()).unwrap();
     assert_eq!(csv_file.columns[3], "d");
-    assert_eq!(csv_file.data[0][3].len(), 0);
-    assert_eq!(csv_file.data[1][3].len(), 0);
-    assert_eq!(csv_file.data[2][3].len(), 0);
+    assert_eq!(csv_file.rows[0][3].len(), 0);
+    assert_eq!(csv_file.rows[1][3].len(), 0);
+    assert_eq!(csv_file.rows[2][3].len(), 0);
   }
 
   #[test]
@@ -267,13 +267,13 @@ mod tests {
     csv_file.insert_column(&"d".to_string(), 0).unwrap();
     assert_eq!(csv_file.columns[0], "d");
     assert_eq!(csv_file.columns.len(), 4);
-    assert_eq!(csv_file.data.len(), 3); // there is still 3 rows, but each row got extended by 1
-    assert_eq!(csv_file.data[0].len(), 4);
-    assert_eq!(csv_file.data[1].len(), 4);
-    assert_eq!(csv_file.data[2].len(), 4);
-    assert_eq!(csv_file.data[0][0].len(), 0); // empty strings
-    assert_eq!(csv_file.data[1][0].len(), 0);
-    assert_eq!(csv_file.data[2][0].len(), 0);
+    assert_eq!(csv_file.rows.len(), 3); // there is still 3 rows, but each row got extended by 1
+    assert_eq!(csv_file.rows[0].len(), 4);
+    assert_eq!(csv_file.rows[1].len(), 4);
+    assert_eq!(csv_file.rows[2].len(), 4);
+    assert_eq!(csv_file.rows[0][0].len(), 0); // empty strings
+    assert_eq!(csv_file.rows[1][0].len(), 0);
+    assert_eq!(csv_file.rows[2][0].len(), 0);
   }
 
   #[test]
@@ -297,10 +297,10 @@ mod tests {
     csv_file.remove_column(0).unwrap();
     assert_eq!(csv_file.columns[0], "b");
     assert_eq!(csv_file.columns.len(), 2);
-    assert_eq!(csv_file.data.len(), 3);
-    assert_eq!(csv_file.data[0].len(), 2);
-    assert_eq!(csv_file.data[1].len(), 2);
-    assert_eq!(csv_file.data[2].len(), 2);
+    assert_eq!(csv_file.rows.len(), 3);
+    assert_eq!(csv_file.rows[0].len(), 2);
+    assert_eq!(csv_file.rows[1].len(), 2);
+    assert_eq!(csv_file.rows[2].len(), 2);
   }
 
   #[test]
@@ -308,9 +308,9 @@ mod tests {
     let columns = get_fake_columns();
     let data = get_fake_rows();
     let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
-    assert_eq!(csv_file.data.len(), 3);
+    assert_eq!(csv_file.rows.len(), 3);
     csv_file.remove_row(0).unwrap();
-    assert_eq!(csv_file.data.len(), 2);
+    assert_eq!(csv_file.rows.len(), 2);
   }
 
   #[test]
@@ -442,8 +442,8 @@ mod tests {
     assert_eq!(csv_file.count_rows(), 9);
     csv_file.trim();
     assert_eq!(csv_file.count_rows(), 7);
-    assert_eq!(csv_file.data[0], vec![empty_string(), "8".to_string(), empty_string()]);
-    assert_eq!(csv_file.data[6], vec![empty_string(), "8".to_string(), empty_string()]);
+    assert_eq!(csv_file.rows[0], vec![empty_string(), "8".to_string(), empty_string()]);
+    assert_eq!(csv_file.rows[6], vec![empty_string(), "8".to_string(), empty_string()]);
   }
 
   #[test]
@@ -464,8 +464,8 @@ mod tests {
     assert_eq!(csv_file.count_rows(), 9);
     csv_file.remove_empty_lines();
     assert_eq!(csv_file.count_rows(), 5);
-    assert_eq!(csv_file.data[0], vec![empty_string(), "8".to_string(), empty_string()]);
-    assert_eq!(csv_file.data[1], vec!["1".to_string(), "2".to_string(), "3".to_string()]);
-    assert_eq!(csv_file.data[4], vec![empty_string(), "8".to_string(), empty_string()]);
+    assert_eq!(csv_file.rows[0], vec![empty_string(), "8".to_string(), empty_string()]);
+    assert_eq!(csv_file.rows[1], vec!["1".to_string(), "2".to_string(), "3".to_string()]);
+    assert_eq!(csv_file.rows[4], vec![empty_string(), "8".to_string(), empty_string()]);
   }
 }
