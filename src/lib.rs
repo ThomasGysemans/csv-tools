@@ -31,6 +31,28 @@ impl CSVFile {
     )
   }
 
+  /// Creates a new CSVFile from the columns and the data.
+  pub fn build(columns: &Vec<String>, data: &Vec<Vec<String>>, delimiter: &Option<char>) -> Result<Self, Error> {
+    for (index, row) in data.iter().enumerate() {
+      if columns.len() != row.len() {
+        return Err(Error::new(
+          ErrorKind::InvalidData,
+          format!("Invalid number of fields for row of index {}, {} were given, but expected {}", index, row.len(), columns.len()))
+        );
+      }
+    }
+
+    let actual_delimiter = delimiter.unwrap_or(',');
+
+    Ok(
+      Self {
+        delimiter: actual_delimiter,
+        columns: columns.clone(),
+        data: data.clone()
+      }
+    )
+  }
+
   /// Returns the number of columns in the CSV file.
   pub fn len(&self) -> usize {
     self.columns.len()
@@ -40,6 +62,11 @@ impl CSVFile {
   /// It doesn't count the header.
   pub fn count_rows(&self) -> usize {
     self.data.len()
+  }
+
+  /// Returns `true` if the CSV file has the given column.
+  pub fn has_column(&self, column_name: &String) -> bool {
+    self.columns.contains(column_name)
   }
 
   /// Checks if the CSV file is valid.
@@ -63,6 +90,33 @@ impl CSVFile {
     }
 
     true
+  }
+
+  /// Fills a column with the given data.
+  /// It may return an error if the column doesn't exist or if the length of the data is different from the number of rows.
+  pub fn fill_column(&mut self, column_name: &String, data: &Vec<String>) -> Result<(), Error> {
+    let column_idx = self.columns.iter().position(|c| c == column_name);
+
+    if column_idx.is_none() {
+      Err(Error::new(
+        ErrorKind::InvalidData,
+        format!("The column {} doesn't exist", column_name))
+      )
+    } else {
+      if data.len() != self.count_rows() {
+        Err(Error::new(
+          ErrorKind::InvalidData,
+          format!("Invalid number of fields, {} were given, but expected {}", data.len(), self.count_rows()))
+        )
+      } else {
+        let column_idx = column_idx.unwrap();
+        for (i, row) in self.data.iter_mut().enumerate() {
+          row[column_idx] = data[i].clone();
+        }
+  
+        Ok(())
+      }
+    }
   }
 
   /// Merges two CSV files together.
@@ -115,7 +169,7 @@ impl CSVFile {
   /// Adds a row to the CSV file.
   /// It may return an error if the number of fields
   /// in the row is different from the number of columns.
-  pub fn add_row(&mut self, data: Vec<String>) -> Result<(), Error> {
+  pub fn add_row(&mut self, data: &Vec<String>) -> Result<(), Error> {
     if data.len() != self.len() {
       return Err(Error::new(
         ErrorKind::InvalidData,
@@ -123,7 +177,7 @@ impl CSVFile {
       );
     }
 
-    self.data.push(data);
+    self.data.push(data.clone());
 
     Ok(())
   }
@@ -131,7 +185,7 @@ impl CSVFile {
   /// Adds a column to the CSV file.
   /// It may return an error if the column already exists.
   /// It appends an empty string to each row.
-  pub fn add_column(&mut self, name: String) -> Result<(), Error> {
+  pub fn add_column(&mut self, name: &String) -> Result<(), Error> {
     if self.columns.contains(&name) {
       return Err(Error::new(
         ErrorKind::InvalidData,
@@ -139,7 +193,7 @@ impl CSVFile {
       );
     }
 
-    self.columns.push(name);
+    self.columns.push(name.clone());
     for row in &mut self.data {
       row.push(String::new());
     }
@@ -150,7 +204,7 @@ impl CSVFile {
   /// Inserts a column to the CSV file at a specific index.
   /// It may return an error if the column already exists or if the index is out of range.
   /// It also inserts an empty string to each row.
-  pub fn insert_column(&mut self, name: String, column_idx: usize) -> Result<(), Error> {
+  pub fn insert_column(&mut self, name: &String, column_idx: usize) -> Result<(), Error> {
     if column_idx > self.len() {
       return Err(Error::new(
         ErrorKind::InvalidData,
@@ -165,7 +219,7 @@ impl CSVFile {
       );
     }
 
-    self.columns.insert(column_idx, name);
+    self.columns.insert(column_idx, name.clone());
     for row in &mut self.data {
       row.insert(column_idx, String::new());
     }
@@ -323,66 +377,4 @@ pub(crate) fn read_data(lines: &mut std::io::Lines<BufReader<&File>>, delimiter:
   Ok(data)
 }
 
-#[cfg(test)]
-mod tests {
-  use super::*;
-
-  #[test]
-  fn test_parse_line() {
-    let line = r"a,b,c".to_string();
-    let result = parse_line(&line, &',', None).unwrap();
-    assert_eq!(result, vec!["a", "b", "c"]);
-
-    let line = r#"a,"Hello, World!",c"#.to_string();
-    let result = parse_line(&line, &',', None).unwrap();
-    assert_eq!(result, vec!["a", "Hello, World!", "c"]);
-
-    let line = r#"a,"Hello, \\World!",c"#.to_string();
-    let result = parse_line(&line, &',', None).unwrap();
-    assert_eq!(result, vec!["a", r"Hello, \World!", "c"]);
-
-    let line = r#"a,"Hello, \\\\World!",c"#.to_string();
-    let result = parse_line(&line, &',', None).unwrap();
-    assert_eq!(result, vec!["a", r"Hello, \\World!", "c"]);
-
-    let line = r#"a,"Hello, \\\World!",c"#.to_string();
-    let result = parse_line(&line, &',', None).unwrap();
-    assert_eq!(result, vec!["a", r"Hello, \World!", "c"]);
-
-    let line = r#"a,"Hello, \"World!",c"#.to_string();
-    let result = parse_line(&line, &',', None).unwrap();
-    assert_eq!(result, vec!["a", r#"Hello, "World!"#, "c"]);
-
-    // Unclosed quote
-    let line = r#"a,"Hello, World!,c"#.to_string();
-    let result = parse_line(&line, &',', None);
-    assert!(result.is_err());
-
-    // Invalid escape sequence
-    let line = r#"a,"Hello, World!",c\"#.to_string();
-    let result = parse_line(&line, &',', None);
-    assert!(result.is_err());
-  }
-
-  #[test]
-  fn test_split_line() {
-    let line = r"a,b,c".to_string();
-    let result = split_line(&line, &',');
-    assert_eq!(result, vec!["a", "b", "c"]);
-
-    let line = r"a,'Hello, World!',c".to_string();
-    let result = split_line(&line, &',');
-    assert_eq!(result, vec!["a", "'Hello", " World!'", "c"]);
-  }
-
-  #[test]
-  fn test_read_columns() {
-    let line = r"a,b,c".to_string();
-    let result = read_columns(&line, &',').unwrap();
-    assert_eq!(result, vec!["a", "b", "c"]);
-
-    let line = r#"a,"Hello, World!",c"#.to_string();
-    let result = read_columns(&line, &',').unwrap();
-    assert_eq!(result, vec!["a", "Hello, World!", "c"]);
-  }
-}
+mod tests;
