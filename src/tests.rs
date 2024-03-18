@@ -231,4 +231,23 @@ mod tests {
     let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
     assert!(csv_file.add_column(&"a".to_string()).is_err()); // it already exists
   }
+
+  #[test]
+  fn test_insert_column() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert_eq!(csv_file.columns[0], "a");
+    assert_eq!(csv_file.columns.len(), 3);
+    csv_file.insert_column(&"d".to_string(), 0).unwrap();
+    assert_eq!(csv_file.columns[0], "d");
+    assert_eq!(csv_file.columns.len(), 4);
+    assert_eq!(csv_file.data.len(), 3); // there is still 3 rows, but each row got extended by 1
+    assert_eq!(csv_file.data[0].len(), 4);
+    assert_eq!(csv_file.data[1].len(), 4);
+    assert_eq!(csv_file.data[2].len(), 4);
+    assert_eq!(csv_file.data[0][0].len(), 0); // empty strings
+    assert_eq!(csv_file.data[1][0].len(), 0);
+    assert_eq!(csv_file.data[2][0].len(), 0);
+  }
 }
