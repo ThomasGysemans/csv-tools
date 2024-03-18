@@ -77,7 +77,7 @@ mod tests {
   fn test_build_csv_file() {
     let columns = get_fake_columns();
     let data = get_fake_rows();
-    let csv_file = CSVFile::build(&columns, &data, &None).unwrap();
+    let csv_file = CSVFile::build(&columns, &data, &',').unwrap();
     assert_eq!(csv_file.columns, columns);
     assert_eq!(csv_file.data, data);
   }
@@ -90,7 +90,7 @@ mod tests {
       vec!["4".to_string(), "5".to_string(), "6".to_string()],
       vec!["7".to_string(), "8".to_string(), "9".to_string()],
     ];
-    let result = CSVFile::build(&columns, &data, &None);
+    let result = CSVFile::build(&columns, &data, &',');
     assert!(result.is_err());
   }
 
@@ -102,7 +102,7 @@ mod tests {
       vec!["4".to_string(), "5".to_string()],
       vec!["7".to_string(), "8".to_string(), "9".to_string()],
     ];
-    let result = CSVFile::build(&columns, &data, &None);
+    let result = CSVFile::build(&columns, &data, &',');
     assert!(result.is_err());
   }
 
@@ -110,7 +110,7 @@ mod tests {
   fn test_len() {
     let columns = get_fake_columns();
     let data = get_fake_rows();
-    let csv_file = CSVFile::build(&columns, &data, &None).unwrap();
+    let csv_file = CSVFile::build(&columns, &data, &',').unwrap();
     assert_eq!(csv_file.len(), 3);
   }
 
@@ -118,7 +118,7 @@ mod tests {
   fn test_count_rows() {
     let columns = get_fake_columns();
     let data = get_fake_rows();
-    let csv_file = CSVFile::build(&columns, &data, &None).unwrap();
+    let csv_file = CSVFile::build(&columns, &data, &',').unwrap();
     assert_eq!(csv_file.count_rows(), 3);
   }
 
@@ -126,7 +126,7 @@ mod tests {
   fn test_has_column() {
     let columns = get_fake_columns();
     let data = get_fake_rows();
-    let csv_file = CSVFile::build(&columns, &data, &None).unwrap();
+    let csv_file = CSVFile::build(&columns, &data, &',').unwrap();
     assert!(csv_file.has_column(&"a".to_string()));
     assert!(csv_file.has_column(&"b".to_string()));
     assert!(csv_file.has_column(&"c".to_string()));
@@ -137,7 +137,7 @@ mod tests {
   fn test_fill_column() {
     let columns = get_fake_columns();
     let data = get_fake_rows();
-    let mut csv_file = CSVFile::build(&columns, &data, &None).unwrap();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
     let new_data = vec!["10".to_string(), "11".to_string(), "12".to_string()];
     assert_eq!(csv_file.data[0][1], "2");
     assert_eq!(csv_file.data[1][1], "5");

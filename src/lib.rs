@@ -14,17 +14,16 @@ impl CSVFile {
   /// Creates a new CSVFile from a file name and an optional delimiter (a coma by default).
   /// It reads the first line of the file to get the columns and the rest of the file to get the data.
   /// It may return an error if the file doesn't exist or if it can't be read properly.
-  pub fn new(file_name: &String, delimiter: &Option<char>) -> Result<Self, Error> {
-    let actual_delimiter = delimiter.unwrap_or(',');
+  pub fn new(file_name: &String, delimiter: &char) -> Result<Self, Error> {
     let file = File::open(&file_name)?;
     let mut lines = BufReader::new(&file).lines();
     let first_line = lines.next().unwrap()?;
-    let columns = read_columns(&first_line, &actual_delimiter)?;
-    let data = read_data(&mut lines, &actual_delimiter, columns.len())?;
+    let columns = read_columns(&first_line, delimiter)?;
+    let data = read_data(&mut lines, delimiter, columns.len())?;
 
     Ok(
       Self {
-        delimiter: actual_delimiter,
+        delimiter: *delimiter,
         columns,
         data
       }
@@ -32,7 +31,7 @@ impl CSVFile {
   }
 
   /// Creates a new CSVFile from the columns and the data.
-  pub fn build(columns: &Vec<String>, data: &Vec<Vec<String>>, delimiter: &Option<char>) -> Result<Self, Error> {
+  pub fn build(columns: &Vec<String>, data: &Vec<Vec<String>>, delimiter: &char) -> Result<Self, Error> {
     for (index, row) in data.iter().enumerate() {
       if columns.len() != row.len() {
         return Err(Error::new(
@@ -42,11 +41,9 @@ impl CSVFile {
       }
     }
 
-    let actual_delimiter = delimiter.unwrap_or(',');
-
     Ok(
       Self {
-        delimiter: actual_delimiter,
+        delimiter: *delimiter,
         columns: columns.clone(),
         data: data.clone()
       }
