@@ -1,3 +1,4 @@
+use core::fmt;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::Error;
@@ -8,6 +9,35 @@ pub struct CSVFile {
   pub delimiter: char,
   pub columns: Vec<String>,
   pub data: Vec<Vec<String>>,
+}
+
+impl fmt::Display for CSVFile {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    let mut result = String::new();
+    for column in &self.columns {
+      result.push_str(column);
+      result.push(self.delimiter);
+    }
+    result.pop(); // removes the trailing delimiter
+    result.push('\n');
+
+    for row in &self.data {
+      for field in row {
+        result.push_str(field);
+        result.push(self.delimiter);
+      }
+      result.pop();
+      result.push('\n');
+    }
+
+    write!(f, "{}", result)
+  }
+}
+
+impl fmt::Debug for CSVFile {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "CSVFile {{ delimiter: {}, columns: {:?}, data: {:?} }}", self.delimiter, self.columns, self.data)
+  }
 }
 
 impl CSVFile {
