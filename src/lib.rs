@@ -132,7 +132,7 @@ impl CSVFile {
   pub fn len(&self) -> usize {
     self.columns.len()
   }
-  
+
   /// Returns the number of rows in the CSV file.
   /// It doesn't count the header.
   pub fn count_rows(&self) -> usize {
@@ -409,14 +409,34 @@ impl CSVFile {
     loop {
       if self.data[i].iter().all(|s| s.is_empty()) {
         self.data.remove(i);
+        if i == 0 {
+          break;
+        } else {
+          i -= 1;
+        }
       } else {
         break;
       }
-      if i == 0 {
-        break;
+    }
+  }
+
+  /// Removes all the rows that are composed of empty strings only,
+  /// starting at the very beginning and stopping as soon as a non-empty row is found.
+  /// 
+  /// If no empty row is found, then nothing happens.
+  pub fn trim_start(&mut self) {
+    let mut to_remove: Vec<usize> = Vec::new();
+    let mut i = 0;
+    while i < self.data.len() {
+      if self.data[i].iter().all(|s| s.is_empty()) {
+        to_remove.push(i);
+        i += 1;
       } else {
-        i -= 1;
+        break;
       }
+    }
+    for i in to_remove.into_iter().rev() {
+      self.data.remove(i);
     }
   }
 }
