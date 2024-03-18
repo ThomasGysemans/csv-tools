@@ -304,4 +304,14 @@ mod tests {
     assert_eq!(contents, "a,b,c\n1,2,3\n4,5,6\n7,8,9\n");
     fs::remove_file("test.csv").unwrap();
   }
+
+  #[test]
+  fn test_get_cell() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert_eq!(csv_file.get_cell(&CSVCoords { row: 0, column: 0 }).unwrap(), "1");
+    assert_eq!(csv_file.get_cell(&CSVCoords { row: 1, column: 1 }).unwrap(), "5");
+    assert_eq!(csv_file.get_cell(&CSVCoords { row: 2, column: 2 }).unwrap(), "9");
+  }
 }

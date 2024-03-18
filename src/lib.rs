@@ -12,6 +12,11 @@ pub struct CSVFile {
   pub data: Vec<Vec<String>>,
 }
 
+pub struct CSVCoords {
+  pub row: usize,
+  pub column: usize,
+}
+
 impl fmt::Display for CSVFile {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let mut result = String::new();
@@ -129,6 +134,12 @@ impl CSVFile {
   /// Gets the index of a column by its name.
   pub fn get_column_idx(&self, column_name: &String) -> Option<usize> {
     self.columns.iter().position(|c| c == column_name)
+  }
+
+  /// Gets a cell at given coordinates.
+  /// It returns `None` if the coordinates are out of range.
+  pub fn get_cell(&self, coordinates: &CSVCoords) -> Option<&String> {
+    self.data.get(coordinates.row)?.get(coordinates.column)
   }
 
   /// Checks if the CSV file is valid.
