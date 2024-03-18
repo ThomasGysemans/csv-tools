@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
   use crate::*;
+  use std::fs;
+  use std::fs::File;
+  use std::io::Read;
 
   fn get_fake_columns() -> Vec<String> {
     vec!["a".to_string(), "b".to_string(), "c".to_string()]
@@ -286,5 +289,19 @@ mod tests {
     assert_eq!(csv_file.data.len(), 3);
     csv_file.remove_row(0).unwrap();
     assert_eq!(csv_file.data.len(), 2);
+  }
+
+  #[test]
+  fn test_write() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    let target_filename = String::from("test.csv");
+    csv_file.write(&target_filename).unwrap();
+    let mut file = File::open(target_filename).unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    assert_eq!(contents, "a,b,c\n1,2,3\n4,5,6\n7,8,9\n");
+    fs::remove_file("test.csv").unwrap();
   }
 }

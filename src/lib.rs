@@ -4,6 +4,7 @@ use std::fs::File;
 use std::io::Error;
 use std::io::{BufRead, BufReader};
 use std::io::ErrorKind;
+use std::io::Write;
 
 pub struct CSVFile {
   pub delimiter: char,
@@ -61,6 +62,23 @@ impl CSVFile {
   }
 
   /// Creates a new CSVFile from the columns and the data.
+  /// 
+  /// # Example
+  /// 
+  /// ```
+  /// # use csv_tools::CSVFile;
+  /// 
+  /// let columns = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+  /// let rows = vec![
+  ///    vec!["1".to_string(), "2".to_string(), "3".to_string()],
+  ///    vec!["4".to_string(), "5".to_string(), "6".to_string()],
+  ///    vec!["7".to_string(), "8".to_string(), "9".to_string()],
+  /// ];
+  /// 
+  /// let file = CSVFile::build(&columns, &rows, &',').unwrap();
+  /// assert_eq!(file.columns, columns);
+  /// assert_eq!(file.data, rows);
+  /// ```
   pub fn build(columns: &Vec<String>, data: &Vec<Vec<String>>, delimiter: &char) -> Result<Self, Error> {
     for (index, row) in data.iter().enumerate() {
       if columns.len() != row.len() {
@@ -78,6 +96,13 @@ impl CSVFile {
         data: data.clone()
       }
     )
+  }
+
+  /// Writes the CSV file to a file.
+  pub fn write(&self, filename: &String) -> Result<(), Error> {
+    let mut file = File::create(filename)?;
+    file.write_all(self.to_string().as_bytes())?;
+    Ok(())
   }
 
   /// Returns the number of columns in the CSV file.
@@ -100,7 +125,7 @@ impl CSVFile {
   pub fn set_delimiter(&mut self, new_delimiter: &char) {
     self.delimiter = *new_delimiter;
   }
-  
+
   /// Gets the index of a column by its name.
   pub fn get_column_idx(&self, column_name: &String) -> Option<usize> {
     self.columns.iter().position(|c| c == column_name)
