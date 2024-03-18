@@ -134,6 +134,16 @@ mod tests {
   }
 
   #[test]
+  fn test_set_delimiter() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert_eq!(csv_file.delimiter, ',');
+    csv_file.set_delimiter(&';');
+    assert_eq!(csv_file.delimiter, ';');
+  }
+
+  #[test]
   fn test_fill_column() {
     let columns = get_fake_columns();
     let data = get_fake_rows();
@@ -146,5 +156,40 @@ mod tests {
     assert_eq!(csv_file.data[0][1], "10");
     assert_eq!(csv_file.data[1][1], "11");
     assert_eq!(csv_file.data[2][1], "12");
+  }
+
+  #[test]
+  fn test_check_validity_on_valid_csv() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert!(csv_file.check_validity());
+  }
+
+  #[test]
+  fn test_check_validity_on_invalid_csv() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    csv_file.columns.remove(1);
+    assert!(!csv_file.check_validity());
+  }
+
+  #[test]
+  fn test_check_validity_with_duplicated_columns() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    csv_file.columns[0] = "b".to_string();
+    assert!(!csv_file.check_validity());
+  }
+
+  #[test]
+  fn test_check_validity_with_missing_row() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    csv_file.data[0].remove(1);
+    assert!(!csv_file.check_validity());
   }
 }

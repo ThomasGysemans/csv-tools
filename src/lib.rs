@@ -66,6 +66,11 @@ impl CSVFile {
     self.columns.contains(column_name)
   }
 
+  /// Sets the delimiter of the CSV file.
+  pub fn set_delimiter(&mut self, new_delimiter: &char) {
+    self.delimiter = *new_delimiter;
+  }
+
   /// Checks if the CSV file is valid.
   /// It checks for duplicates in the columns and if the rows have the right length.
   pub fn check_validity(&self) -> bool {
