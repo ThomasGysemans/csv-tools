@@ -423,4 +423,49 @@ mod tests {
     assert_eq!(csv_file.count_rows(), 0);
     assert!(csv_file.has_no_rows())
   }
+
+  #[test]
+  fn test_trim() {
+    let columns = get_fake_columns();
+    let data = vec![
+      vec![empty_string(), empty_string(), empty_string()],
+      vec![empty_string(), "8".to_string(), empty_string()],
+      vec![empty_string(), empty_string(), empty_string()],
+      vec!["1".to_string(), "2".to_string(), "3".to_string()],
+      vec!["4".to_string(), "5".to_string(), "6".to_string()],
+      vec!["7".to_string(), "8".to_string(), "9".to_string()],
+      vec![empty_string(), empty_string(), empty_string()],
+      vec![empty_string(), "8".to_string(), empty_string()],
+      vec![empty_string(), empty_string(), empty_string()],
+    ];
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert_eq!(csv_file.count_rows(), 9);
+    csv_file.trim();
+    assert_eq!(csv_file.count_rows(), 7);
+    assert_eq!(csv_file.data[0], vec![empty_string(), "8".to_string(), empty_string()]);
+    assert_eq!(csv_file.data[6], vec![empty_string(), "8".to_string(), empty_string()]);
+  }
+
+  #[test]
+  fn remove_all_empty_lines() {
+    let columns = get_fake_columns();
+    let data = vec![
+      vec![empty_string(), empty_string(), empty_string()],
+      vec![empty_string(), "8".to_string(), empty_string()],
+      vec![empty_string(), empty_string(), empty_string()],
+      vec!["1".to_string(), "2".to_string(), "3".to_string()],
+      vec!["4".to_string(), "5".to_string(), "6".to_string()],
+      vec!["7".to_string(), "8".to_string(), "9".to_string()],
+      vec![empty_string(), empty_string(), empty_string()],
+      vec![empty_string(), "8".to_string(), empty_string()],
+      vec![empty_string(), empty_string(), empty_string()],
+    ];
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert_eq!(csv_file.count_rows(), 9);
+    csv_file.remove_empty_lines();
+    assert_eq!(csv_file.count_rows(), 5);
+    assert_eq!(csv_file.data[0], vec![empty_string(), "8".to_string(), empty_string()]);
+    assert_eq!(csv_file.data[1], vec!["1".to_string(), "2".to_string(), "3".to_string()]);
+    assert_eq!(csv_file.data[4], vec![empty_string(), "8".to_string(), empty_string()]);
+  }
 }

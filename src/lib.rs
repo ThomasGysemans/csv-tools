@@ -439,6 +439,17 @@ impl CSVFile {
       self.data.remove(i);
     }
   }
+
+  /// Removes all the rows that are composed of empty strings only at the beginning and at the end.
+  pub fn trim(&mut self) {
+    self.trim_start();
+    self.trim_end();
+  }
+
+  /// Removes all the empty lines from the CSV file.
+  pub fn remove_empty_lines(&mut self) {
+    self.data.retain(|row| !row.iter().all(|s| s.is_empty()));
+  }
 }
 
 /// Parses the line into a vector of strings.
