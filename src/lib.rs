@@ -17,6 +17,24 @@ pub struct CSVCoords {
   pub column: usize,
 }
 
+impl PartialEq for CSVCoords {
+  fn eq(&self, other: &Self) -> bool {
+    self.row == other.row && self.column == other.column
+  }
+}
+
+impl fmt::Display for CSVCoords {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "({}, {})", self.row, self.column)
+  }
+}
+
+impl fmt::Debug for CSVCoords {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "CSVCoords {{ row: {}, column: {} }}", self.row, self.column)
+  }
+}
+
 impl fmt::Display for CSVFile {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     let mut result = String::new();
@@ -138,8 +156,41 @@ impl CSVFile {
 
   /// Gets a cell at given coordinates.
   /// It returns `None` if the coordinates are out of range.
+  /// 
+  /// # Example
+  /// 
+  /// ```
+  /// # use csv_tools::{CSVFile, CSVCoords};
+  /// 
+  /// let columns = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+  /// let rows = vec![
+  ///    vec!["1".to_string(), "2".to_string(), "3".to_string()],
+  ///    vec!["4".to_string(), "5".to_string(), "6".to_string()],
+  ///    vec!["7".to_string(), "8".to_string(), "9".to_string()],
+  /// ];
+  /// 
+  /// let file = CSVFile::build(&columns, &rows, &',').unwrap();
+  /// 
+  /// assert_eq!(file.get_cell(&CSVCoords { row: 0, column: 0 }), Some(&"1".to_string()));
+  /// assert_eq!(file.get_cell(&CSVCoords { row: 1, column: 1 }), Some(&"5".to_string()));
+  /// assert_eq!(file.get_cell(&CSVCoords { row: 2, column: 2 }), Some(&"9".to_string()));
+  /// ```
   pub fn get_cell(&self, coordinates: &CSVCoords) -> Option<&String> {
     self.data.get(coordinates.row)?.get(coordinates.column)
+  }
+
+  /// Finds text in the CSV file and returns the coordinates of the cells.
+  pub fn find_text(&self, text: &String) -> Vec<CSVCoords> {
+    let mut coords: Vec<CSVCoords> = Vec::new();
+    for (i, row) in self.data.iter().enumerate() {
+      for (j, cell) in row.iter().enumerate() {
+        if cell.contains(text) {
+          coords.push(CSVCoords { row: i, column: j });
+        }
+      }
+    }
+
+    coords
   }
 
   /// Checks if the CSV file is valid.

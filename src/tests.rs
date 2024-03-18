@@ -314,4 +314,14 @@ mod tests {
     assert_eq!(csv_file.get_cell(&CSVCoords { row: 1, column: 1 }).unwrap(), "5");
     assert_eq!(csv_file.get_cell(&CSVCoords { row: 2, column: 2 }).unwrap(), "9");
   }
+
+  #[test]
+  fn test_find_text() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    let result = csv_file.find_text(&"5".to_string());
+    assert_eq!(result.len(), 1);
+    assert_eq!(result[0], CSVCoords { row: 1, column: 1 });
+  }
 }
