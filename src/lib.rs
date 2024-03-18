@@ -1,4 +1,4 @@
-use core::fmt;
+use std::fmt;
 use std::collections::HashSet;
 use std::fs::File;
 use std::io::Error;
@@ -177,7 +177,6 @@ impl CSVFile {
   /// 
   /// ```
   /// # use csv_tools::{CSVFile, CSVCoords};
-  /// 
   /// let columns = vec!["a".to_string(), "b".to_string(), "c".to_string()];
   /// let rows = vec![
   ///    vec!["1".to_string(), "2".to_string(), "3".to_string()],
