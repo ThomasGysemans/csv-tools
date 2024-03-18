@@ -132,7 +132,7 @@ impl CSVFile {
   pub fn len(&self) -> usize {
     self.columns.len()
   }
-
+  
   /// Returns the number of rows in the CSV file.
   /// It doesn't count the header.
   pub fn count_rows(&self) -> usize {
@@ -142,6 +142,22 @@ impl CSVFile {
   /// Returns `true` if the CSV file has the given column.
   pub fn has_column(&self, column_name: &String) -> bool {
     self.columns.contains(column_name)
+  }
+
+  /// Returns `true` if the CSV file has no row.
+  pub fn has_no_rows(&self) -> bool {
+    self.data.is_empty()
+  }
+
+  /// Returns `true` if the CSV file has no column.
+  pub fn has_no_columns(&self) -> bool {
+    self.columns.is_empty()
+  }
+
+  /// Returns `true` if the CSV file is empty,
+  /// meaning it doesn't have any column and any row.
+  pub fn empty(&self) -> bool {
+    self.has_no_rows() && self.has_no_columns()
   }
 
   /// Sets the delimiter of the CSV file.
@@ -382,6 +398,26 @@ impl CSVFile {
     self.data.remove(row_idx);
 
     Ok(())
+  }
+
+  /// Removes all the rows that are composed of empty strings only,
+  /// starting at the very end and stopping as soon as a non-empty row is found.
+  /// 
+  /// If no empty row is found, then nothing happens.
+  pub fn trim_end(&mut self) {
+    let mut i = self.data.len() - 1;
+    loop {
+      if self.data[i].iter().all(|s| s.is_empty()) {
+        self.data.remove(i);
+      } else {
+        break;
+      }
+      if i == 0 {
+        break;
+      } else {
+        i -= 1;
+      }
+    }
   }
 }
 

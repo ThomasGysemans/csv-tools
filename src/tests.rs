@@ -17,6 +17,10 @@ mod tests {
     ]
   }
 
+  fn empty_string() -> String {
+    String::new()
+  }
+
   #[test]
   fn test_parse_line() {
     let line = r"a,b,c".to_string();
@@ -134,6 +138,24 @@ mod tests {
     assert!(csv_file.has_column(&"b".to_string()));
     assert!(csv_file.has_column(&"c".to_string()));
     assert!(!csv_file.has_column(&"d".to_string()));
+  }
+
+  #[test]
+  fn test_has_no_column() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    csv_file.columns.clear();
+    assert!(csv_file.has_no_columns());
+  }
+
+  #[test]
+  fn test_has_no_row() {
+    let columns = get_fake_columns();
+    let data = get_fake_rows();
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    csv_file.data.clear();
+    assert!(csv_file.has_no_rows());
   }
 
   #[test]
@@ -323,5 +345,44 @@ mod tests {
     let result = csv_file.find_text(&"5".to_string());
     assert_eq!(result.len(), 1);
     assert_eq!(result[0], CSVCoords { row: 1, column: 1 });
+  }
+
+  #[test]
+  fn test_trim_end() {
+    let columns = get_fake_columns();
+    let data = vec![
+      vec!["1".to_string(), "2".to_string(), "3".to_string()],
+      vec!["4".to_string(), "5".to_string(), "6".to_string()],
+      vec!["7".to_string(), "8".to_string(), "9".to_string()],
+      vec![empty_string(), empty_string(), empty_string()],
+      vec![empty_string(), "8".to_string(), empty_string()],
+      vec![empty_string(), empty_string(), empty_string()],
+      vec![empty_string(), empty_string(), empty_string()],
+    ];
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert_eq!(csv_file.count_rows(), 7);
+    csv_file.trim_end();
+    assert_eq!(csv_file.count_rows(), 5);
+  }
+
+  #[test]
+  fn test_trim_end_with_a_file_of_one_nonempty_line() {
+    let columns = get_fake_columns();
+    let data = vec![vec!["1".to_string(), "2".to_string(), "3".to_string()]];
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert_eq!(csv_file.count_rows(), 1);
+    csv_file.trim_end();
+    assert_eq!(csv_file.count_rows(), 1);
+  }
+
+  #[test]
+  fn test_trim_end_with_a_file_of_one_empty_line() {
+    let columns = get_fake_columns();
+    let data = vec![vec![empty_string(), empty_string(), empty_string()]];
+    let mut csv_file = CSVFile::build(&columns, &data, &',').unwrap();
+    assert_eq!(csv_file.count_rows(), 1);
+    csv_file.trim_end();
+    assert_eq!(csv_file.count_rows(), 0);
+    assert!(csv_file.has_no_rows())
   }
 }
