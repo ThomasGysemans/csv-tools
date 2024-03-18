@@ -468,4 +468,81 @@ mod tests {
     assert_eq!(csv_file.rows[1], vec!["1".to_string(), "2".to_string(), "3".to_string()]);
     assert_eq!(csv_file.rows[4], vec![empty_string(), "8".to_string(), empty_string()]);
   }
+
+  #[test]
+  fn test_merge_csv_files_with_same_number_of_rows() {
+    let initial_columns = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+    let initial_rows = vec![
+      vec!["1".to_string(), "2".to_string(), "3".to_string()],
+      vec!["4".to_string(), "5".to_string(), "6".to_string()],
+      vec!["7".to_string(), "8".to_string(), "9".to_string()],
+    ];
+    let mut csv_file1 = CSVFile::build(&initial_columns, &initial_rows, &',').unwrap();
+
+    let other_columns = vec!["d".to_string(), "e".to_string()];
+    let other_rows = vec![
+      vec!["1".to_string(), "2".to_string()],
+      vec!["4".to_string(), "5".to_string()],
+      vec!["7".to_string(), "8".to_string()],
+    ];
+    let csv_file2 = CSVFile::build(&other_columns, &other_rows, &',').unwrap();
+
+    csv_file1.merge(&csv_file2).unwrap();
+
+    assert_eq!(csv_file1.len(), 5);
+    assert_eq!(csv_file1.count_rows(), 3);
+  }
+
+  #[test]
+  fn test_merge_csv_files_with_less_rows_than_other() {
+    let initial_columns = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+    let initial_rows = vec![
+      vec!["1".to_string(), "2".to_string(), "3".to_string()],
+      vec!["4".to_string(), "5".to_string(), "6".to_string()],
+    ];
+    let mut csv_file1 = CSVFile::build(&initial_columns, &initial_rows, &',').unwrap();
+
+    let other_columns = vec!["d".to_string(), "e".to_string()];
+    let other_rows = vec![
+      vec!["1".to_string(), "2".to_string()],
+      vec!["4".to_string(), "5".to_string()],
+      vec!["7".to_string(), "8".to_string()],
+    ];
+    let csv_file2 = CSVFile::build(&other_columns, &other_rows, &',').unwrap();
+
+    csv_file1.merge(&csv_file2).unwrap();
+
+    assert_eq!(csv_file1.len(), 5);
+    assert_eq!(csv_file1.count_rows(), 3);
+    assert_eq!(csv_file1.rows[2].len(), 5);
+    assert!(csv_file1.check_validity());
+  }
+
+  #[test]
+  fn test_merge_csv_files_with_more_rows_than_other() {
+    let initial_columns = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+    let initial_rows = vec![
+      vec!["1".to_string(), "2".to_string(), "3".to_string()],
+      vec!["4".to_string(), "5".to_string(), "6".to_string()],
+      vec!["7".to_string(), "8".to_string(), "9".to_string()],
+    ];
+    let mut csv_file1 = CSVFile::build(&initial_columns, &initial_rows, &',').unwrap();
+
+    let other_columns = vec!["d".to_string(), "e".to_string()];
+    let other_rows = vec![
+      vec!["1".to_string(), "2".to_string()],
+      vec!["4".to_string(), "5".to_string()],
+    ];
+    let csv_file2 = CSVFile::build(&other_columns, &other_rows, &',').unwrap();
+
+    csv_file1.merge(&csv_file2).unwrap();
+
+    assert_eq!(csv_file1.len(), 5);
+    assert_eq!(csv_file1.count_rows(), 3);
+    assert_eq!(csv_file1.rows[2].len(), 5);
+    assert_eq!(csv_file1.rows[2][2], "9".to_string());
+    assert_eq!(csv_file1.rows[2][3], empty_string());
+    assert_eq!(csv_file1.rows[2][4], empty_string());
+    assert!(csv_file1.check_validity());
+  }
 }

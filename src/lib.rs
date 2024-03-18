@@ -282,7 +282,7 @@ impl CSVFile {
     // Finally:
     //   -> extend the rows of self with the data from other
 
-    let number_of_columns = self.len() + other.len();
+    let initial_self_len = self.len();
     let self_rows = self.count_rows();
     let other_rows = other.count_rows();
 
@@ -291,16 +291,16 @@ impl CSVFile {
 
     if self_rows < other_rows {
       for _ in self_rows..other_rows {
-        self.rows.push(vec![String::new(); number_of_columns]);
+        self.rows.push(vec![String::new(); initial_self_len]);
       }
     } else if self_rows > other_rows {
-      for i in (other_rows + 1)..self_rows {
+      for i in other_rows..self_rows {
         self.rows[i].extend(vec![String::new(); other.len()].iter().cloned());
       }
     }
 
-    for (i, row) in self.rows.iter_mut().enumerate() {
-      row.extend(other.rows[i].iter().cloned());
+    for i in 0..other_rows {
+      self.rows[i].extend(other.rows[i].iter().cloned());
     }
 
     Ok(())
