@@ -65,7 +65,7 @@ impl fmt::Debug for CSVFile {
 }
 
 impl CSVFile {
-  /// Creates a new CSVFile from a file name and an optional delimiter (a coma by default).
+  /// Creates a new CSVFile from a file name and an optional delimiter (a comma by default).
   /// It reads the first line of the file to get the columns and the rest of the file to get the data.
   /// It may return an error if the file doesn't exist or if it can't be read properly.
   pub fn new(file_name: &String, delimiter: &char) -> Result<Self, Error> {
