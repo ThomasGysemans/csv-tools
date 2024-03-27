@@ -224,7 +224,6 @@ impl CSVFile {
     /// let csv_file = CSVFile::build(&columns, &rows, &',').unwrap();
     /// let result = csv_file.to_map(|row: &String| row.parse::<u32>().unwrap());
     ///
-    /// println!("{:?}", result);
     /// assert_eq!(result.len(), 3);
     /// assert_eq!(result.get(&String::from("a")).unwrap(), &vec![1, 4, 7]);
     /// assert_eq!(result.get(&String::from("b")).unwrap(), &vec![2, 5, 8]);
