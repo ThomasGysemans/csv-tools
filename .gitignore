@@ -1,3 +1,4 @@
-/target
-.DS_Store
 /doc
+/target
+test_langs.csv
+.DS_Store
